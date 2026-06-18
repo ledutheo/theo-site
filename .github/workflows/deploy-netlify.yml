@@ -1,0 +1,100 @@
+name: Deploy API (Netlify)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "netlify/**"
+      - "api/**"
+      - "netlify.toml"
+      - ".github/workflows/deploy-netlify.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: netlify-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check secrets
+        id: check
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          if [ -z "${NETLIFY_AUTH_TOKEN:-}" ] || [ -z "${NETLIFY_SITE_ID:-}" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::NETLIFY_AUTH_TOKEN ou NETLIFY_SITE_ID manquant — skip"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Netlify CLI
+        if: steps.check.outputs.ready == 'true'
+        run: npm install -g netlify-cli@latest
+
+      - name: Set XAI_API_KEY on Netlify
+        if: steps.check.outputs.ready == 'true'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+        run: |
+          if [ -n "${XAI_API_KEY:-}" ]; then
+            netlify env:set XAI_API_KEY "$XAI_API_KEY" \
+              --site "$NETLIFY_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" --context production
+          fi
+
+      - name: Deploy to Netlify
+        if: steps.check.outputs.ready == 'true'
+        id: deploy
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          netlify deploy --prod --site "$NETLIFY_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" 2>&1 | tee /tmp/netlify.out
+          URL=$(grep -oE 'https://[a-zA-Z0-9-]+--[a-zA-Z0-9-]+\.netlify\.app' /tmp/netlify.out | tail -1)
+          if [ -z "$URL" ]; then
+            URL=$(grep -oE 'https://[a-zA-Z0-9-]+\.netlify\.app' /tmp/netlify.out | tail -1)
+          fi
+          if [ -z "$URL" ]; then
+            echo "::warning::URL Netlify introuvable dans la sortie"
+            exit 0
+          fi
+          echo "base_url=$URL" >> "$GITHUB_OUTPUT"
+          echo "Deployed: $URL"
+
+      - name: Update config.json
+        if: steps.deploy.outputs.base_url != ''
+        run: |
+          BASE="${{ steps.deploy.outputs.base_url }}"
+          cat > config.json <<EOF
+          {
+            "apiUrl": "$BASE/.netlify/functions/ask",
+            "healthUrl": "$BASE/.netlify/functions/health",
+            "model": "grok-3-mini",
+            "stream": true,
+            "provider": "netlify"
+          }
+          EOF
+
+      - name: Commit config.json
+        if: steps.deploy.outputs.base_url != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add config.json
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: maj config.json avec URL Netlify"
+          git push

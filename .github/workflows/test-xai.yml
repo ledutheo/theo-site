@@ -1,0 +1,29 @@
+name: Test xAI key
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping xAI API
+        env:
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+        run: |
+          if [ -z "${XAI_API_KEY:-}" ]; then
+            echo "::error::XAI_API_KEY secret manquant"
+            exit 1
+          fi
+          HTTP=$(curl -s -o /tmp/xai.json -w "%{http_code}" \
+            https://api.x.ai/v1/chat/completions \
+            -H "Authorization: Bearer $XAI_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"model":"grok-3-mini","messages":[{"role":"user","content":"réponds juste OK"}],"max_tokens":5}')
+          echo "HTTP $HTTP"
+          if [ "$HTTP" != "200" ]; then
+            cat /tmp/xai.json
+            exit 1
+          fi
+          jq -r '.choices[0].message.content // "no content"' /tmp/xai.json
+          echo "✓ Clé xAI valide"

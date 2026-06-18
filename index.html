@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>theoledu</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🟠</text></svg>" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400&display=swap"
@@ -340,8 +341,28 @@
     </footer>
 
     <script>
-      const STATIC_ANSWER =
-        "Théo — theoledu / ledutheo — dev Manjaro/Arch. Projets : syskit, dotfiles, scripts, 1975 (hommage BASIC/COBOL à sa mère informaticienne banque). En ce moment : coloring books, Maman Débunk, ce site.";
+      const OFFLINE_KB = [
+        {
+          match: /qui est|theoledu|c'est qui/,
+          answer:
+            "Théo — theoledu / ledutheo — dev Manjaro/Arch. Projets : syskit, dotfiles, scripts, 1975 (hommage BASIC/COBOL à sa mère informaticienne banque). En ce moment : coloring books, Maman Débunk, ce site.",
+        },
+        {
+          match: /1975|basic|cobol/,
+          answer:
+            "1975 est un repo hommage aux années 70 : programmes BASIC et COBOL bancaire, pour sa mère qui codait en banque à l'époque. C'est du vintage authentique, pas du rétro décoratif.",
+        },
+        {
+          match: /outil|syskit|dotfiles|script/,
+          answer:
+            "Au quotidien : syskit (CLI Arch/Manjaro), dotfiles zsh/git soignés, scripts bash (update, cleanup). Stack : Manjaro, zsh, gh, Python, et parfois du COBOL pour l'âme.",
+        },
+        {
+          match: /maman|débunk|debunk/,
+          answer:
+            "Maman Débunk — un projet perso autour de sa mère informaticienne et la démystification du vécu tech des années 70-80. À côté des coloring books et de ce site portfolio.",
+        },
+      ];
 
       const SUGGESTIONS = [
         "Qui est theoledu ?",
@@ -390,9 +411,15 @@
         chat.scrollTop = chat.scrollHeight;
       }
 
+      function bubbleClass(role) {
+        if (role === "user") return "user";
+        if (role === "system") return "system";
+        return "bot";
+      }
+
       function appendBubble(role, content) {
         const el = document.createElement("div");
-        el.className = `msg ${role === "user" ? "user" : role === "system" ? "system" : "bot"}`;
+        el.className = `msg ${bubbleClass(role)}`;
         el.textContent = content;
         chat.appendChild(el);
         return el;
@@ -434,7 +461,10 @@
           /* fallback */
         }
         modelBadge.textContent = config.model || "grok-3-mini";
-        if (config.apiUrl) checkHealth();
+        if (config.apiUrl) {
+          checkHealth();
+          setInterval(checkHealth, 60_000);
+        }
       }
 
       async function checkHealth() {
@@ -531,8 +561,10 @@
 
       function fallbackAnswer(question) {
         const q = question.toLowerCase();
-        if (/theoledu|qui est|c'est qui/.test(q)) return STATIC_ANSWER;
-        return "API hors ligne — je ne réponds qu'à « qui est theoledu » en mode local.";
+        for (const entry of OFFLINE_KB) {
+          if (entry.match.test(q)) return entry.answer;
+        }
+        return "API hors ligne — essaie : « qui est theoledu », « projet 1975 », « outils », « maman débunk ».";
       }
 
       form.addEventListener("submit", async (e) => {
@@ -550,12 +582,15 @@
           const bubble = appendBubble("bot", "");
           let answer;
 
-          if (config.apiUrl && apiOnline) {
+          if (config.apiUrl) {
             try {
               answer = config.stream
                 ? await askStream(question, bubble)
                 : ((bubble.textContent = await askJson(question)),
                   bubble.textContent);
+              apiOnline = true;
+              apiBadge.textContent = "Grok live";
+              apiBadge.className = "badge live";
             } catch {
               answer = fallbackAnswer(question);
               bubble.textContent = answer;
