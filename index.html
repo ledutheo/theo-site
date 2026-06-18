@@ -3,39 +3,285 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Théo — Site personnel</title>
+    <title>theoledu</title>
     <style>
       :root {
-        color-scheme: light dark;
-        font-family: system-ui, sans-serif;
-        line-height: 1.5;
+        color-scheme: dark;
+        --bg: #0a0a0c;
+        --surface: #141418;
+        --border: #27272a;
+        --text: #fafafa;
+        --muted: #a1a1aa;
+        --accent: #f97316;
+        --accent-dim: #ea580c;
+        font-family: "IBM Plex Sans", system-ui, sans-serif;
+        line-height: 1.55;
       }
+
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         margin: 0;
         min-height: 100vh;
-        display: grid;
-        place-items: center;
-        background: #0f1115;
-        color: #f4f4f5;
+        background:
+          radial-gradient(ellipse 80% 50% at 50% -20%, #43140755, transparent),
+          var(--bg);
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem 1rem 3rem;
       }
-      main {
-        max-width: 36rem;
-        padding: 2rem;
+
+      header {
         text-align: center;
+        margin-bottom: 2.5rem;
       }
+
       h1 {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
+        font-size: 1.75rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin: 0 0 0.35rem;
       }
-      p {
-        color: #a1a1aa;
+
+      .tagline {
+        color: var(--muted);
+        font-size: 0.95rem;
+        margin: 0;
+      }
+
+      main {
+        width: min(32rem, 100%);
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        padding: 1.25rem;
+        box-shadow: 0 24px 48px #00000055;
+      }
+
+      label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--muted);
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      form {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      input[type="text"] {
+        flex: 1;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 0.6rem;
+        color: var(--text);
+        font: inherit;
+        font-size: 1rem;
+        padding: 0.7rem 0.9rem;
+        outline: none;
+        transition: border-color 0.15s;
+      }
+
+      input[type="text"]:focus {
+        border-color: var(--accent);
+      }
+
+      button {
+        background: var(--accent);
+        border: none;
+        border-radius: 0.6rem;
+        color: #fff;
+        cursor: pointer;
+        font: inherit;
+        font-size: 0.95rem;
+        font-weight: 500;
+        padding: 0.7rem 1.1rem;
+        transition: background 0.15s;
+        white-space: nowrap;
+      }
+
+      button:hover:not(:disabled) {
+        background: var(--accent-dim);
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: wait;
+      }
+
+      #answer {
+        margin-top: 1.25rem;
+        min-height: 1.5rem;
+      }
+
+      #answer:empty {
+        display: none;
+      }
+
+      #answer.visible {
+        padding: 1rem;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 0.6rem;
+        animation: fade 0.25s ease;
+      }
+
+      #answer p {
+        margin: 0;
+      }
+
+      #answer .hint {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      #answer .error {
+        color: #fca5a5;
+      }
+
+      @keyframes fade {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      footer {
+        margin-top: 2rem;
+        text-align: center;
+        font-size: 0.8rem;
+        color: #52525b;
+      }
+
+      footer a {
+        color: var(--muted);
       }
     </style>
   </head>
   <body>
+    <header>
+      <h1>theoledu</h1>
+      <p class="tagline">Coloring Books · Maman Débunk · portfolio</p>
+    </header>
+
     <main>
-      <h1>ledutheo</h1>
-      <p>Coloring Books · Maman Débunk · portfolio — bientôt en ligne.</p>
+      <div class="card">
+        <label for="question">Pose une question</label>
+        <form id="form">
+          <input
+            id="question"
+            type="text"
+            placeholder="Qui est theoledu ?"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button type="submit">Demander</button>
+        </form>
+        <div id="answer" role="status" aria-live="polite"></div>
+      </div>
     </main>
+
+    <footer>
+      <a href="https://github.com/ledutheo">ledutheo</a> sur GitHub
+    </footer>
+
+    <script>
+      const API_URL = ""; // ex: https://theo-site-api.<account>.workers.dev
+
+      const STATIC_ANSWER = `Théo — theoledu sur le web, ledutheo sur GitHub — est un développeur sur Manjaro/Arch Linux. Il aime les outils simples et propres : syskit (CLI Arch), dotfiles, scripts du quotidien. Il tient aussi le projet 1975, un hommage BASIC & COBOL des années 70 pour sa mère, informaticienne en banque à l'époque. En ce moment : coloring books, Maman Débunk, et ce site.`;
+
+      const form = document.getElementById("form");
+      const input = document.getElementById("question");
+      const answer = document.getElementById("answer");
+      const button = form.querySelector("button");
+
+      function normalize(text) {
+        return text
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .trim();
+      }
+
+      function isTheoleduQuestion(text) {
+        const q = normalize(text);
+        return (
+          /qui\s+(est|es|c'?est)\s+theoledu/.test(q) ||
+          /c'?est\s+qui\s+theoledu/.test(q) ||
+          q === "theoledu" ||
+          q === "qui est theoledu"
+        );
+      }
+
+      function showAnswer(html) {
+        answer.innerHTML = html;
+        answer.classList.add("visible");
+      }
+
+      async function askApi(question) {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question }),
+        });
+        if (!res.ok) throw new Error("API " + res.status);
+        const data = await res.json();
+        return data.answer;
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const question = input.value.trim();
+        if (!question) return;
+
+        button.disabled = true;
+        answer.classList.remove("visible");
+        answer.innerHTML = "";
+
+        try {
+          if (API_URL) {
+            const text = await askApi(question);
+            showAnswer("<p>" + escapeHtml(text) + "</p>");
+          } else if (isTheoleduQuestion(question)) {
+            showAnswer("<p>" + escapeHtml(STATIC_ANSWER) + "</p>");
+          } else {
+            showAnswer(
+              '<p class="hint">Pour l\'instant je ne réponds qu\'à « qui est theoledu ».</p>'
+            );
+          }
+        } catch {
+          showAnswer(
+            '<p class="error">Erreur API — réponse locale utilisée.</p><p>' +
+              escapeHtml(STATIC_ANSWER) +
+              "</p>"
+          );
+        } finally {
+          button.disabled = false;
+        }
+      });
+
+      function escapeHtml(text) {
+        return text
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+    </script>
   </body>
 </html>
