@@ -1,0 +1,5 @@
+{
+  "apiUrl": "https://theo-site-api.ledutheo.workers.dev",
+  "model": "grok-3-mini",
+  "stream": true
+}

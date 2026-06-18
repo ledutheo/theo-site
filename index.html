@@ -4,18 +4,27 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>theoledu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
         color-scheme: dark;
-        --bg: #0a0a0c;
-        --surface: #141418;
-        --border: #27272a;
-        --text: #fafafa;
-        --muted: #a1a1aa;
+        --bg: #08080a;
+        --surface: #121216;
+        --surface-2: #1a1a20;
+        --border: #2a2a32;
+        --text: #f4f4f5;
+        --muted: #9ca3af;
         --accent: #f97316;
-        --accent-dim: #ea580c;
+        --accent-2: #fb923c;
+        --user: #1e3a5f;
+        --bot: #1c1917;
+        --ok: #4ade80;
+        --err: #f87171;
         font-family: "IBM Plex Sans", system-ui, sans-serif;
-        line-height: 1.55;
       }
 
       * {
@@ -26,53 +35,180 @@
         margin: 0;
         min-height: 100vh;
         background:
-          radial-gradient(ellipse 80% 50% at 50% -20%, #43140755, transparent),
+          radial-gradient(ellipse 70% 45% at 50% -10%, #7c2d1222, transparent),
+          radial-gradient(ellipse 40% 30% at 100% 100%, #1e3a5f18, transparent),
           var(--bg);
         color: var(--text);
         display: flex;
         flex-direction: column;
-        align-items: center;
-        padding: 2rem 1rem 3rem;
       }
 
       header {
+        padding: 1.5rem 1rem 1rem;
         text-align: center;
-        margin-bottom: 2.5rem;
+        border-bottom: 1px solid var(--border);
+        background: #0c0c0f88;
+        backdrop-filter: blur(8px);
+        position: sticky;
+        top: 0;
+        z-index: 10;
       }
 
       h1 {
-        font-size: 1.75rem;
+        margin: 0;
+        font-size: 1.5rem;
         font-weight: 600;
-        letter-spacing: -0.02em;
-        margin: 0 0 0.35rem;
+        letter-spacing: -0.03em;
+      }
+
+      .meta {
+        margin-top: 0.35rem;
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      .badge {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.68rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        color: var(--muted);
+      }
+
+      .badge.live {
+        border-color: #166534;
+        color: var(--ok);
+      }
+
+      .badge.offline {
+        border-color: #7f1d1d;
+        color: var(--err);
       }
 
       .tagline {
+        margin: 0.5rem 0 0;
         color: var(--muted);
-        font-size: 0.95rem;
-        margin: 0;
+        font-size: 0.88rem;
       }
 
       main {
-        width: min(32rem, 100%);
+        flex: 1;
+        width: min(40rem, 100%);
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        padding: 0 0.75rem 1rem;
       }
 
-      .card {
+      #chips {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+        padding: 1rem 0 0.5rem;
+      }
+
+      .chip {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        color: var(--muted);
+        cursor: pointer;
+        font: inherit;
+        font-size: 0.8rem;
+        padding: 0.35rem 0.75rem;
+        transition: border-color 0.15s, color 0.15s;
+      }
+
+      .chip:hover {
+        border-color: var(--accent);
+        color: var(--text);
+      }
+
+      #chat {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 0.5rem 0 1rem;
+        min-height: 18rem;
+      }
+
+      .msg {
+        max-width: 92%;
+        padding: 0.75rem 0.95rem;
+        border-radius: 1rem;
+        line-height: 1.5;
+        font-size: 0.95rem;
+        animation: pop 0.2s ease;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .msg.user {
+        align-self: flex-end;
+        background: var(--user);
+        border-bottom-right-radius: 0.25rem;
+      }
+
+      .msg.bot {
+        align-self: flex-start;
+        background: var(--bot);
+        border: 1px solid var(--border);
+        border-bottom-left-radius: 0.25rem;
+      }
+
+      .msg.system {
+        align-self: center;
+        background: transparent;
+        border: 1px dashed var(--border);
+        color: var(--muted);
+        font-size: 0.82rem;
+        max-width: 100%;
+        text-align: center;
+      }
+
+      .typing {
+        align-self: flex-start;
+        display: flex;
+        gap: 0.3rem;
+        padding: 0.85rem 1rem;
+        background: var(--bot);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+      }
+
+      .typing span {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--muted);
+        animation: bounce 1s infinite;
+      }
+
+      .typing span:nth-child(2) {
+        animation-delay: 0.15s;
+      }
+      .typing span:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+
+      .composer {
+        position: sticky;
+        bottom: 0;
+        background: linear-gradient(transparent, var(--bg) 30%);
+        padding: 0.75rem 0 1.25rem;
+      }
+
+      .composer-inner {
         background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 1rem;
-        padding: 1.25rem;
-        box-shadow: 0 24px 48px #00000055;
-      }
-
-      label {
-        display: block;
-        font-size: 0.8rem;
-        font-weight: 500;
-        color: var(--muted);
-        margin-bottom: 0.5rem;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
+        padding: 0.65rem;
+        box-shadow: 0 16px 40px #00000066;
       }
 
       form {
@@ -80,168 +216,314 @@
         gap: 0.5rem;
       }
 
-      input[type="text"] {
+      input {
         flex: 1;
-        background: var(--bg);
+        background: var(--surface-2);
         border: 1px solid var(--border);
-        border-radius: 0.6rem;
+        border-radius: 0.65rem;
         color: var(--text);
         font: inherit;
-        font-size: 1rem;
-        padding: 0.7rem 0.9rem;
+        font-size: 0.95rem;
+        padding: 0.65rem 0.85rem;
         outline: none;
-        transition: border-color 0.15s;
       }
 
-      input[type="text"]:focus {
+      input:focus {
         border-color: var(--accent);
       }
 
-      button {
-        background: var(--accent);
+      button[type="submit"] {
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
         border: none;
-        border-radius: 0.6rem;
+        border-radius: 0.65rem;
         color: #fff;
         cursor: pointer;
         font: inherit;
-        font-size: 0.95rem;
         font-weight: 500;
-        padding: 0.7rem 1.1rem;
-        transition: background 0.15s;
+        padding: 0.65rem 1rem;
         white-space: nowrap;
       }
 
-      button:hover:not(:disabled) {
-        background: var(--accent-dim);
-      }
-
-      button:disabled {
-        opacity: 0.6;
+      button[type="submit"]:disabled {
+        opacity: 0.55;
         cursor: wait;
       }
 
-      #answer {
-        margin-top: 1.25rem;
-        min-height: 1.5rem;
-      }
-
-      #answer:empty {
-        display: none;
-      }
-
-      #answer.visible {
-        padding: 1rem;
-        background: var(--bg);
-        border: 1px solid var(--border);
-        border-radius: 0.6rem;
-        animation: fade 0.25s ease;
-      }
-
-      #answer p {
-        margin: 0;
-      }
-
-      #answer .hint {
+      .toolbar {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.45rem;
+        font-size: 0.72rem;
         color: var(--muted);
-        font-size: 0.9rem;
+        font-family: "IBM Plex Mono", monospace;
       }
 
-      #answer .error {
-        color: #fca5a5;
-      }
-
-      @keyframes fade {
-        from {
-          opacity: 0;
-          transform: translateY(4px);
-        }
-        to {
-          opacity: 1;
-          transform: none;
-        }
+      .toolbar button {
+        background: none;
+        border: none;
+        color: var(--muted);
+        cursor: pointer;
+        font: inherit;
+        font-size: inherit;
+        text-decoration: underline;
+        padding: 0;
       }
 
       footer {
-        margin-top: 2rem;
         text-align: center;
-        font-size: 0.8rem;
+        padding: 0.75rem;
+        font-size: 0.78rem;
         color: #52525b;
+        border-top: 1px solid var(--border);
       }
 
       footer a {
         color: var(--muted);
+      }
+
+      @keyframes pop {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+      }
+
+      @keyframes bounce {
+        0%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-5px);
+        }
       }
     </style>
   </head>
   <body>
     <header>
       <h1>theoledu</h1>
+      <div class="meta">
+        <span class="badge" id="model-badge">grok-3-mini</span>
+        <span class="badge offline" id="api-badge">API …</span>
+      </div>
       <p class="tagline">Coloring Books · Maman Débunk · portfolio</p>
     </header>
 
     <main>
-      <div class="card">
-        <label for="question">Pose une question</label>
-        <form id="form">
-          <input
-            id="question"
-            type="text"
-            placeholder="Qui est theoledu ?"
-            autocomplete="off"
-            spellcheck="false"
-          />
-          <button type="submit">Demander</button>
-        </form>
-        <div id="answer" role="status" aria-live="polite"></div>
+      <div id="chips"></div>
+      <div id="chat" aria-live="polite"></div>
+
+      <div class="composer">
+        <div class="composer-inner">
+          <form id="form">
+            <input
+              id="question"
+              type="text"
+              placeholder="Qui est theoledu ?"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button type="submit">Envoyer</button>
+          </form>
+          <div class="toolbar">
+            <span id="usage"></span>
+            <button type="button" id="clear">effacer</button>
+          </div>
+        </div>
       </div>
     </main>
 
     <footer>
-      <a href="https://github.com/ledutheo">ledutheo</a> sur GitHub
+      <a href="https://github.com/ledutheo/theo-site">source</a> ·
+      <a href="https://github.com/ledutheo">ledutheo</a>
     </footer>
 
     <script>
-      const API_URL = ""; // ex: https://theo-site-api.<account>.workers.dev
+      const STATIC_ANSWER =
+        "Théo — theoledu / ledutheo — dev Manjaro/Arch. Projets : syskit, dotfiles, scripts, 1975 (hommage BASIC/COBOL à sa mère informaticienne banque). En ce moment : coloring books, Maman Débunk, ce site.";
 
-      const STATIC_ANSWER = `Théo — theoledu sur le web, ledutheo sur GitHub — est un développeur sur Manjaro/Arch Linux. Il aime les outils simples et propres : syskit (CLI Arch), dotfiles, scripts du quotidien. Il tient aussi le projet 1975, un hommage BASIC & COBOL des années 70 pour sa mère, informaticienne en banque à l'époque. En ce moment : coloring books, Maman Débunk, et ce site.`;
+      const SUGGESTIONS = [
+        "Qui est theoledu ?",
+        "C'est quoi le projet 1975 ?",
+        "Quels sont ses outils du quotidien ?",
+        "Parle-moi de Maman Débunk",
+      ];
 
+      const STORAGE_KEY = "theoledu-chat-v1";
+
+      let config = { apiUrl: "", model: "grok-3-mini", stream: true };
+      let history = [];
+      let apiOnline = false;
+
+      const chat = document.getElementById("chat");
       const form = document.getElementById("form");
       const input = document.getElementById("question");
-      const answer = document.getElementById("answer");
-      const button = form.querySelector("button");
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const usageEl = document.getElementById("usage");
+      const apiBadge = document.getElementById("api-badge");
+      const modelBadge = document.getElementById("model-badge");
+      const chips = document.getElementById("chips");
 
-      function normalize(text) {
-        return text
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .trim();
+      function loadHistory() {
+        try {
+          history = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        } catch {
+          history = [];
+        }
+        renderHistory();
       }
 
-      function isTheoleduQuestion(text) {
-        const q = normalize(text);
-        return (
-          /qui\s+(est|es|c'?est)\s+theoledu/.test(q) ||
-          /c'?est\s+qui\s+theoledu/.test(q) ||
-          q === "theoledu" ||
-          q === "qui est theoledu"
-        );
+      function saveHistory() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(history.slice(-40)));
       }
 
-      function showAnswer(html) {
-        answer.innerHTML = html;
-        answer.classList.add("visible");
+      function addMessage(role, content) {
+        history.push({ role, content, ts: Date.now() });
+        saveHistory();
+        appendBubble(role, content);
+        chat.scrollTop = chat.scrollHeight;
       }
 
-      async function askApi(question) {
-        const res = await fetch(API_URL, {
+      function appendBubble(role, content) {
+        const el = document.createElement("div");
+        el.className = `msg ${role === "user" ? "user" : role === "system" ? "system" : "bot"}`;
+        el.textContent = content;
+        chat.appendChild(el);
+        return el;
+      }
+
+      function renderHistory() {
+        chat.innerHTML = "";
+        if (!history.length) {
+          appendBubble(
+            "system",
+            "Pose une question sur Théo — propulsé par Grok quand l'API est branchée."
+          );
+        }
+        for (const m of history) {
+          appendBubble(m.role, m.content);
+        }
+        chat.scrollTop = chat.scrollHeight;
+      }
+
+      function showTyping() {
+        const el = document.createElement("div");
+        el.className = "typing";
+        el.id = "typing";
+        el.innerHTML = "<span></span><span></span><span></span>";
+        chat.appendChild(el);
+        chat.scrollTop = chat.scrollHeight;
+        return el;
+      }
+
+      function hideTyping() {
+        document.getElementById("typing")?.remove();
+      }
+
+      async function loadConfig() {
+        try {
+          const res = await fetch("config.json?" + Date.now());
+          if (res.ok) config = { ...config, ...(await res.json()) };
+        } catch {
+          /* fallback */
+        }
+        modelBadge.textContent = config.model || "grok-3-mini";
+        if (config.apiUrl) checkHealth();
+      }
+
+      async function checkHealth() {
+        try {
+          const res = await fetch(config.apiUrl.replace(/\/$/, "") + "/health");
+          const data = await res.json();
+          apiOnline = res.ok && data.hasKey;
+          apiBadge.textContent = apiOnline ? "Grok live" : "API sans clé";
+          apiBadge.className = "badge " + (apiOnline ? "live" : "offline");
+        } catch {
+          apiOnline = false;
+          apiBadge.textContent = "API hors ligne";
+          apiBadge.className = "badge offline";
+        }
+      }
+
+      function apiHistory() {
+        return history
+          .filter((m) => m.role === "user" || m.role === "assistant")
+          .map((m) => ({
+            role: m.role === "bot" ? "assistant" : m.role,
+            content: m.content,
+          }));
+      }
+
+      async function askStream(question, bubble) {
+        const res = await fetch(config.apiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "text/event-stream",
+          },
+          body: JSON.stringify({
+            question,
+            history: apiHistory(),
+            stream: true,
+          }),
+        });
+
+        if (!res.ok) throw new Error("HTTP " + res.status);
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let text = "";
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split("\n\n");
+          buffer = parts.pop() ?? "";
+
+          for (const part of parts) {
+            if (!part.startsWith("data: ")) continue;
+            const payload = part.slice(6).trim();
+            if (payload === "[DONE]") continue;
+            try {
+              const json = JSON.parse(payload);
+              if (json.delta) {
+                text += json.delta;
+                bubble.textContent = text;
+                chat.scrollTop = chat.scrollHeight;
+              }
+            } catch {
+              /* ignore */
+            }
+          }
+        }
+        return text;
+      }
+
+      async function askJson(question) {
+        const res = await fetch(config.apiUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question }),
+          body: JSON.stringify({
+            question,
+            history: apiHistory(),
+          }),
         });
-        if (!res.ok) throw new Error("API " + res.status);
         const data = await res.json();
+        if (!res.ok) throw new Error(data.error || res.status);
+        if (data.usage) {
+          usageEl.textContent =
+            (data.usage.total_tokens || "?") + " tokens";
+        }
         return data.answer;
+      }
+
+      function fallbackAnswer(question) {
+        const q = question.toLowerCase();
+        if (/theoledu|qui est|c'est qui/.test(q)) return STATIC_ANSWER;
+        return "API hors ligne — je ne réponds qu'à « qui est theoledu » en mode local.";
       }
 
       form.addEventListener("submit", async (e) => {
@@ -249,39 +531,64 @@
         const question = input.value.trim();
         if (!question) return;
 
-        button.disabled = true;
-        answer.classList.remove("visible");
-        answer.innerHTML = "";
+        input.value = "";
+        addMessage("user", question);
+        submitBtn.disabled = true;
+        const typing = showTyping();
 
         try {
-          if (API_URL) {
-            const text = await askApi(question);
-            showAnswer("<p>" + escapeHtml(text) + "</p>");
-          } else if (isTheoleduQuestion(question)) {
-            showAnswer("<p>" + escapeHtml(STATIC_ANSWER) + "</p>");
+          hideTyping();
+          const bubble = appendBubble("bot", "");
+          let answer;
+
+          if (config.apiUrl && apiOnline) {
+            try {
+              answer = config.stream
+                ? await askStream(question, bubble)
+                : ((bubble.textContent = await askJson(question)),
+                  bubble.textContent);
+            } catch {
+              answer = fallbackAnswer(question);
+              bubble.textContent = answer;
+            }
           } else {
-            showAnswer(
-              '<p class="hint">Pour l\'instant je ne réponds qu\'à « qui est theoledu ».</p>'
-            );
+            answer = fallbackAnswer(question);
+            bubble.textContent = answer;
           }
-        } catch {
-          showAnswer(
-            '<p class="error">Erreur API — réponse locale utilisée.</p><p>' +
-              escapeHtml(STATIC_ANSWER) +
-              "</p>"
-          );
+
+          history.push({ role: "assistant", content: answer, ts: Date.now() });
+          saveHistory();
+        } catch (err) {
+          hideTyping();
+          addMessage("system", "Erreur : " + err.message);
         } finally {
-          button.disabled = false;
+          hideTyping();
+          submitBtn.disabled = false;
+          input.focus();
         }
       });
 
-      function escapeHtml(text) {
-        return text
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;");
+      document.getElementById("clear").addEventListener("click", () => {
+        history = [];
+        saveHistory();
+        renderHistory();
+        usageEl.textContent = "";
+      });
+
+      for (const s of SUGGESTIONS) {
+        const b = document.createElement("button");
+        b.className = "chip";
+        b.type = "button";
+        b.textContent = s;
+        b.addEventListener("click", () => {
+          input.value = s;
+          form.requestSubmit();
+        });
+        chips.appendChild(b);
       }
+
+      loadHistory();
+      loadConfig();
     </script>
   </body>
 </html>

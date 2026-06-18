@@ -2,5 +2,5 @@ name = "theo-site-api"
 main = "worker/index.js"
 compatibility_date = "2026-01-01"
 
-[vars]
-# Définir le secret : wrangler secret put XAI_API_KEY
+[observability]
+enabled = true
