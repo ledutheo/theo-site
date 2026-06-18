@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "name": "theo-site-api",
+  "functions": {
+    "api/*.js": {
+      "runtime": "edge"
+    }
+  }
+}

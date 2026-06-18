@@ -1,5 +1,6 @@
 {
-  "apiUrl": "https://theo-site-api.ledutheo.workers.dev",
+  "apiUrl": "https://theo-site-api.vercel.app/api/ask",
+  "healthUrl": "https://theo-site-api.vercel.app/api/health",
   "model": "grok-3-mini",
   "stream": true
 }

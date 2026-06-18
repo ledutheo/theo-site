@@ -352,7 +352,12 @@
 
       const STORAGE_KEY = "theoledu-chat-v1";
 
-      let config = { apiUrl: "", model: "grok-3-mini", stream: true };
+      let config = {
+        apiUrl: "",
+        healthUrl: "",
+        model: "grok-3-mini",
+        stream: true,
+      };
       let history = [];
       let apiOnline = false;
 
@@ -433,8 +438,12 @@
       }
 
       async function checkHealth() {
+        const healthUrl =
+          config.healthUrl ||
+          (config.apiUrl ? config.apiUrl.replace(/\/ask$/, "/health") : "");
+        if (!healthUrl) return;
         try {
-          const res = await fetch(config.apiUrl.replace(/\/$/, "") + "/health");
+          const res = await fetch(healthUrl);
           const data = await res.json();
           apiOnline = res.ok && data.hasKey;
           apiBadge.textContent = apiOnline ? "Grok live" : "API sans clé";

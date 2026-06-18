@@ -2,10 +2,10 @@
   "name": "theo-site",
   "private": true,
   "scripts": {
-    "deploy:worker": "wrangler deploy",
-    "dev:worker": "wrangler dev worker/index.js"
+    "dev:api": "vercel dev",
+    "deploy:api": "vercel deploy --prod"
   },
   "devDependencies": {
-    "wrangler": "^4.101.0"
+    "vercel": "^44.0.0"
   }
 }
